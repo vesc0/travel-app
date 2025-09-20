@@ -4,7 +4,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { feature } from 'topojson-client';
 
 type CountryFeature = GeoJSON.Feature<
@@ -17,6 +17,7 @@ export default function CountrySelectionScreen() {
     const { selected, toggleCountry } = useCountries();
 
     const [countries, setCountries] = useState<CountryFeature[]>([]);
+    const [search, setSearch] = useState('');
 
     useEffect(() => {
         const geojson = feature(
@@ -26,8 +27,15 @@ export default function CountrySelectionScreen() {
             GeoJSON.Polygon | GeoJSON.MultiPolygon,
             { name: string }
         >;
-        setCountries(geojson.features as CountryFeature[]);
+        const sortedCountries = (geojson.features as CountryFeature[]).slice().sort((a, b) =>
+            a.properties.name.localeCompare(b.properties.name)
+        );
+        setCountries(sortedCountries);
     }, []);
+
+    const filteredCountries = countries.filter((c) =>
+        c.properties.name.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
         <ThemedView style={styles.container}>
@@ -35,8 +43,19 @@ export default function CountrySelectionScreen() {
                 Select Visited Countries
             </ThemedText>
 
+            <TextInput
+                placeholder="Search countries..."
+                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#555'}
+                value={search}
+                onChangeText={setSearch}
+                style={[
+                    styles.search,
+                    { color: colorScheme === 'dark' ? 'white' : 'black' },
+                ]}
+            />
+
             <FlatList
-                data={countries}
+                data={filteredCountries}
                 keyExtractor={(item) => item.properties.name}
                 renderItem={({ item }) => {
                     const name = item.properties.name;
@@ -70,6 +89,14 @@ export default function CountrySelectionScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, paddingVertical: 60, paddingHorizontal: 30 },
     title: { marginBottom: 20 },
+    search: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        marginBottom: 16,
+    },
     item: {
         paddingVertical: 8,
         borderBottomWidth: 1,
