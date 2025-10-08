@@ -1,50 +1,102 @@
-# Welcome to your Expo app 👋
+# Travel Map App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application for tracking visited countries with interactive maps and statistics.
 
-## Get started
+## Contents
 
-1. Install dependencies
+- [Features](#features)  
+- [Getting Started](#getting-started)
+- [Architecture](#architecture)
+- [Built with](#built-with)
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- Interactive world map with country highlighting
+- Country selection interface with search functionality
+- Travel statistics and analytics
+- Continental breakdown with visual charts
+- Dark/Light theme support
+- Cross-platform (iOS & Android)
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
+### Prerequisites
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Node.js (v14 or newer)
+- npm or yarn
+- iOS: XCode (for iOS development)
+- Android: Android Studio (for Android development)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Installation
 
-## Get a fresh project
-
-When you're ready, run:
-
+1. Clone the repository
 ```bash
-npm run reset-project
+git clone https://github.com/vesc0/travel-app.git
+cd travel-app
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install dependencies
+```bash
+npm install
+```
 
-## Learn more
+3. Start the development server
+```bash
+npm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+4. Run on iOS/Android
+```bash
+# For iOS
+npm run ios
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# For Android
+npm run android
+```
 
-## Join the community
+### Environment Setup
 
-Join our community of developers creating universal apps.
+For Android, add your Google Maps API key in `app.json`:
+```json
+{
+  "android": {
+    "config": {
+      "googleMaps": {
+        "apiKey": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Architecture
+
+### Tech Stack
+- React Native
+- Expo Router for navigation
+- React Native Maps for mapping
+- React Native Chart Kit for statistics visualization
+- Context API for state management
+
+### Project Structure
+```
+travel-app/
+├── app/                  # Main application routes
+│   ├── (tabs)/           # Tab-based navigation
+│   │   ├── map.tsx       # World map view
+│   │   ├── select.tsx    # Country selection
+│   │   └── stats.tsx     # Statistics view
+├── components/           # Reusable components
+├── constants/            # App constants and configuration
+├── contexts/             # React Context providers
+├── hooks/                # Custom React hooks
+└── assets/               # Images, fonts, and other static files
+```
+
+## Built With
+
+- [React Native](https://reactnative.dev/) - Mobile framework
+- [Expo](https://expo.dev/) - Development platform
+- [React Native Maps](https://github.com/react-native-maps/react-native-maps) - Mapping solution
+- [React Native Chart Kit](https://github.com/indiespirit/react-native-chart-kit) - Statistical visualizations
