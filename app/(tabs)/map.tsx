@@ -1,149 +1,75 @@
-import worldData from '@/assets/world-110m.json';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useCountries } from '@/contexts/CountryContext';
-import { geoEquirectangular, geoPath } from 'd3-geo';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
-} from 'react-native-reanimated';
-import Svg, { Path, Rect } from 'react-native-svg';
-import { feature } from 'topojson-client';
-
-type CountryProperties = { name: string };
-type CountryFeature = GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, CountryProperties>;
+import React from 'react';
+import { Dimensions, Platform, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
+import MapView, { Polygon, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
+import { countryCoordinates, CountryPolygons } from '../../constants/CountryCoordinates';
 
 export default function MapScreen() {
     const { selected } = useCountries();
-    const [countries, setCountries] = useState<CountryFeature[]>([]);
     const router = useRouter();
     const colorScheme = useColorScheme();
-
-    useEffect(() => {
-        const geojson = feature(
-            worldData as any,
-            worldData.objects.countries
-        ) as GeoJSON.FeatureCollection<
-            GeoJSON.Polygon | GeoJSON.MultiPolygon,
-            CountryProperties
-        >;
-
-        setCountries(geojson.features as CountryFeature[]);
-    }, []);
-
-    const isVisited = (country: CountryFeature) =>
-        selected.includes(country.properties.name);
-
-    const { width } = Dimensions.get('window');
-    const mapHeight = 300;
-
-    const projection = geoEquirectangular().fitSize([width, mapHeight], { type: 'FeatureCollection', features: countries });
-    const pathGenerator = geoPath().projection(projection);
-
-    const getPath = (feature: CountryFeature) => pathGenerator(feature) || '';
-
-    // --- Gesture/Zoom/Pan Logic ---
-    // shared values for translation and scale
-    const scale = useSharedValue(1);
-    const lastScale = useSharedValue(1);
-    const translateX = useSharedValue(0);
-    const translateY = useSharedValue(0);
-    const lastTranslateX = useSharedValue(0);
-    const lastTranslateY = useSharedValue(0);
-
-    // Pinch gesture using Gesture API
-    const pinchGesture = Gesture.Pinch()
-        .onStart(() => {
-            lastScale.value = scale.value;
-        })
-        .onUpdate((event) => {
-            scale.value = lastScale.value * event.scale;
-        })
-        .onEnd(() => {
-            if (scale.value < 1) scale.value = withTiming(1);
-            if (scale.value > 8) scale.value = withTiming(8);
-            lastScale.value = scale.value;
-        });
-
-    // Pan gesture using Gesture API
-    const panGesture = Gesture.Pan()
-        .minDistance(5)
-        .averageTouches(true)
-        .onStart(() => {
-            lastTranslateX.value = translateX.value;
-            lastTranslateY.value = translateY.value;
-        })
-        .onUpdate((event) => {
-            translateX.value = lastTranslateX.value + event.translationX;
-            translateY.value = lastTranslateY.value + event.translationY;
-        })
-        .onEnd(() => {
-            lastTranslateX.value = translateX.value;
-            lastTranslateY.value = translateY.value;
-        });
-
-    const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [
-            { scale: scale.value },
-            { translateX: translateX.value },
-            { translateY: translateY.value },
-        ],
-    }));
+    const { width, height } = Dimensions.get('window');
+    const mapHeight = height * 0.75; // 75% of screen height
 
     // Colors based on color scheme
     const containerBackgroundColor = colorScheme === 'dark' ? '#121212' : '#fff';
-    const seaColor = colorScheme === 'dark' ? '#1e2a38' : '#b3d9ff'; // sea color inside map
-    const unvisitedFill = colorScheme === 'dark' ? '#555' : '#e0e0e0'; // continents
-    const visitedFill = '#4caf50';
-    const strokeColor = colorScheme === 'dark' ? '#888' : '#aaa';
+    const visitedFillColor = 'rgba(0, 191, 165, 0.3)'; // Semi-transparent teal
+    const visitedStrokeColor = '#00bfa5';
+    const unvisitedFillColor = colorScheme === 'dark' ? 'rgba(55, 71, 79, 0.3)' : 'rgba(207, 216, 220, 0.3)';
+    const unvisitedStrokeColor = colorScheme === 'dark' ? '#455a64' : '#90a4ae';
     const textColor = colorScheme === 'dark' ? '#fff' : '#000';
     const buttonBackground = colorScheme === 'dark' ? '#008080' : 'blue';
 
     return (
         <ThemedView style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
-            <ThemedText type="title" style={[styles.title, { color: textColor }]}>
-                Visited Countries Map
-            </ThemedText>
-            <ThemedView style={[styles.contentContainer, { backgroundColor: 'transparent' }]}>
-                <GestureHandlerRootView style={styles.zoomableContainer}>
-                    <GestureDetector gesture={composedGesture}>
-                        <Animated.View style={[animatedStyle]}>
-                            <Svg width={width} height={mapHeight} style={styles.svg}>
-                                <Rect width={width} height={mapHeight} fill={seaColor} />
-                                {countries.map((country) => (
-                                    <Path
-                                        key={country.properties.name}
-                                        d={getPath(country)}
-                                        fill={isVisited(country) ? visitedFill : unvisitedFill}
-                                        stroke={strokeColor}
-                                        strokeWidth={0.5}
-                                    />
-                                ))}
-                            </Svg>
-                        </Animated.View>
-                    </GestureDetector>
-                </GestureHandlerRootView>
+            <MapView
+                style={[styles.map, { width, height: mapHeight }]}
+                provider={Platform.OS === 'ios' ? PROVIDER_DEFAULT : PROVIDER_GOOGLE}
+                mapType="standard"
+                rotateEnabled={true}
+                pitchEnabled={true}
+                zoomEnabled={true}
+                scrollEnabled={true}
+                initialRegion={{
+                    latitude: 20,
+                    longitude: 0,
+                    latitudeDelta: 180,
+                    longitudeDelta: 180
+                }}
+                minZoomLevel={1}
+            >
+                {Object.entries(countryCoordinates).map(([countryName, polygons]: [string, CountryPolygons]) => {
+                    const isVisited = selected.includes(countryName);
+                    return polygons.map((coordinates, index) => (
+                        <Polygon
+                            key={`${countryName}-${index}`}
+                            coordinates={coordinates}
+                            fillColor={isVisited ? visitedFillColor : unvisitedFillColor}
+                            strokeColor={isVisited ? visitedStrokeColor : unvisitedStrokeColor}
+                            strokeWidth={isVisited ? 2 : 1}
+                        />
+                    ));
+                })}
+            </MapView>
 
-                {selected.length === 0 && (
-                    <ThemedText style={{ marginTop: 10, color: textColor, textAlign: 'center' }}>
+            <ThemedView style={styles.bottomContainer}>
+                {selected.length === 0 ? (
+                    <ThemedText style={[styles.stats, { color: textColor }]}>
                         No countries visited yet.
                     </ThemedText>
-                )}
-
-                {selected.length > 0 && (
+                ) : (
                     <ThemedText style={[styles.stats, { color: textColor }]}>
-                        Visited: {selected.length}/{countries.length}
+                        Visited: {selected.length}/{Object.keys(countryCoordinates).length}
                     </ThemedText>
                 )}
 
-                <TouchableOpacity style={[styles.button, { backgroundColor: buttonBackground }]} onPress={() => router.push('/select')}>
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: buttonBackground }]}
+                    onPress={() => router.push('/select')}
+                >
                     <ThemedText style={styles.buttonText}>Add Countries</ThemedText>
                 </TouchableOpacity>
             </ThemedView>
@@ -152,10 +78,23 @@ export default function MapScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingHorizontal: 30, paddingTop: 60 },
-    title: { marginBottom: 20, textAlign: 'center' },
-    contentContainer: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
-    stats: { marginTop: 16, fontSize: 16, textAlign: 'center' },
+    container: {
+        flex: 1,
+    },
+    map: {
+        width: '100%',
+        overflow: 'hidden'
+    },
+    bottomContainer: {
+        paddingHorizontal: 30,
+        paddingVertical: 20,
+        alignItems: 'center',
+    },
+    stats: {
+        marginTop: 16,
+        fontSize: 16,
+        textAlign: 'center'
+    },
     button: {
         marginTop: 16,
         paddingVertical: 12,
@@ -163,15 +102,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignSelf: 'center',
     },
-    buttonText: { color: 'white', fontWeight: 'bold' },
-    zoomableContainer: {
-        width: '100%',
-        overflow: 'hidden',
-        minHeight: 300,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    svg: {
-        alignSelf: 'center',
+    buttonText: {
+        color: 'white',
+        fontWeight: 'bold'
     },
 });
