@@ -3,16 +3,14 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { feature } from 'topojson-client';
 
-type CountryFeature = GeoJSON.Feature<
-    GeoJSON.Polygon | GeoJSON.MultiPolygon,
-    { name: string }
->;
+type CountryFeature = GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, { name: string }>;
 
-export default function CountrySelectionScreen() {
+export default function SelectCountriesModal() {
     const colorScheme = useColorScheme();
     const { selected, toggleCountry } = useCountries();
 
@@ -39,67 +37,71 @@ export default function CountrySelectionScreen() {
 
     return (
         <ThemedView style={styles.container}>
-            <ThemedText type="title" style={styles.title}>
-                Select Visited Countries
-            </ThemedText>
-
             <TextInput
                 placeholder="Search countries..."
                 placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#555'}
                 value={search}
                 onChangeText={setSearch}
                 style={[
-                    styles.search,
-                    { color: colorScheme === 'dark' ? 'white' : 'black' },
+                    styles.searchInput,
+                    {
+                        backgroundColor: colorScheme === 'dark' ? '#333' : '#f0f0f0',
+                        color: colorScheme === 'dark' ? '#fff' : '#000',
+                    },
                 ]}
             />
 
             <FlatList
                 data={filteredCountries}
                 keyExtractor={(item) => item.properties.name}
-                renderItem={({ item }) => {
-                    const name = item.properties.name;
-                    const isSelected = selected.includes(name);
-                    return (
-                        <TouchableOpacity
-                            onPress={() => toggleCountry(name)}
-                            style={styles.item}
-                        >
-                            <ThemedText
-                                style={{
-                                    color: isSelected
-                                        ? 'green'
-                                        : colorScheme === 'dark'
-                                            ? 'white'
-                                            : 'black',
-                                }}
-                            >
-                                {isSelected ? '✔ ' : ''}
-                                {name}
-                            </ThemedText>
-                        </TouchableOpacity>
-                    );
-                }}
+                renderItem={({ item }) => (
+                    <TouchableOpacity
+                        style={[
+                            styles.countryItem,
+                            selected.includes(item.properties.name) && styles.selectedItem,
+                        ]}
+                        onPress={() => toggleCountry(item.properties.name)}
+                    >
+                        <ThemedText style={styles.countryName}>
+                            {item.properties.name}
+                        </ThemedText>
+                        {selected.includes(item.properties.name) && (
+                            <MaterialIcons
+                                name="check"
+                                size={24}
+                                color={colorScheme === 'dark' ? '#fff' : '#000'}
+                            />
+                        )}
+                    </TouchableOpacity>
+                )}
             />
-
         </ThemedView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingVertical: 60, paddingHorizontal: 30 },
-    title: { marginBottom: 20 },
-    search: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        marginBottom: 16,
+    container: {
+        flex: 1,
+        paddingTop: 16,
     },
-    item: {
-        paddingVertical: 8,
-        borderBottomWidth: 1,
+    searchInput: {
+        margin: 16,
+        padding: 12,
+        borderRadius: 8,
+        fontSize: 16,
+    },
+    countryItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: '#ccc',
+    },
+    selectedItem: {
+        backgroundColor: 'rgba(0, 191, 165, 0.1)',
+    },
+    countryName: {
+        fontSize: 16,
     },
 });

@@ -10,10 +10,7 @@ import { ActivityIndicator, Platform, View } from 'react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
-  const [fontsLoaded] = useFonts({
-    ...MaterialIcons.font,
-  });
+  const [fontsLoaded] = useFonts({ ...MaterialIcons.font, });
 
   if (!fontsLoaded) {
     return (
@@ -37,11 +34,11 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="select"
+        name="profile"
         options={{
-          title: 'Select',
+          title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="list" color={color} size={size ?? 28} />
+            <MaterialIcons name="person" color={color} size={size ?? 28} />
           ),
         }}
       />

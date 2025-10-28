@@ -3,12 +3,15 @@ import React, { createContext, ReactNode, useContext, useState } from 'react';
 type CountryContextType = {
     selected: string[];
     toggleCountry: (name: string) => void;
+    visitedFillColor: string;
+    setVisitedFillColor: (color: string) => void;
 };
 
 const CountryContext = createContext<CountryContextType | undefined>(undefined);
 
 export function CountryProvider({ children }: { children: ReactNode }) {
     const [selected, setSelected] = useState<string[]>([]);
+    const [visitedFillColor, setVisitedFillColor] = useState('#00bfa5');
 
     const toggleCountry = (name: string) => {
         setSelected((prev) =>
@@ -17,7 +20,7 @@ export function CountryProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <CountryContext.Provider value={{ selected, toggleCountry }}>
+        <CountryContext.Provider value={{ selected, toggleCountry, visitedFillColor, setVisitedFillColor }}>
             {children}
         </CountryContext.Provider>
     );
