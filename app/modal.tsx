@@ -1,11 +1,10 @@
-import worldData from '@/assets/world-110m.json';
-import { ThemedText } from '@/components/ThemedText';
+import worldData from '@/assets/world-50m.json';
+import CountryItem from '@/components/CountryItem';
 import { ThemedView } from '@/components/ThemedView';
 import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { MaterialIcons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { FlatList, StyleSheet, TextInput } from 'react-native';
 import { feature } from 'topojson-client';
 
 type CountryFeature = GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, { name: string }>;
@@ -35,6 +34,17 @@ export default function SelectCountriesModal() {
         c.properties.name.toLowerCase().includes(search.toLowerCase())
     );
 
+    const renderItem = useCallback(({ item }: { item: CountryFeature }) => (
+        <CountryItem
+            name={item.properties.name}
+            isSelected={selected.includes(item.properties.name)}
+            onToggle={toggleCountry}
+            textColor={colorScheme === 'dark' ? '#fff' : '#000'}
+        />
+    ), [selected, toggleCountry, colorScheme]);
+
+    const keyExtractor = useCallback((item: CountryFeature) => item.properties.name, []);
+
     return (
         <ThemedView style={styles.container}>
             <TextInput
@@ -53,27 +63,12 @@ export default function SelectCountriesModal() {
 
             <FlatList
                 data={filteredCountries}
-                keyExtractor={(item) => item.properties.name}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={[
-                            styles.countryItem,
-                            selected.includes(item.properties.name) && styles.selectedItem,
-                        ]}
-                        onPress={() => toggleCountry(item.properties.name)}
-                    >
-                        <ThemedText style={styles.countryName}>
-                            {item.properties.name}
-                        </ThemedText>
-                        {selected.includes(item.properties.name) && (
-                            <MaterialIcons
-                                name="check"
-                                size={24}
-                                color={colorScheme === 'dark' ? '#fff' : '#000'}
-                            />
-                        )}
-                    </TouchableOpacity>
-                )}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                initialNumToRender={20}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={true}
             />
         </ThemedView>
     );

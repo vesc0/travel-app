@@ -14,16 +14,28 @@ export default function StatsScreen() {
     const { width } = useWindowDimensions();
 
     const stats = useMemo(() => {
-        const totalCountries = Object.keys(countryCoordinates).length;
-        const visitedCount = selected.length;
+        // Get all available countries from coordinates data
+        const availableCountries = new Set(Object.keys(countryCoordinates));
+
+        // Filter selected countries to only include those with coordinates
+        const validSelected = selected.filter(country => availableCountries.has(country));
+
+        const totalCountries = availableCountries.size;
+        const visitedCount = validSelected.length;
         const percentage = ((visitedCount / totalCountries) * 100).toFixed(1);
 
         const continentStats = Object.values(continents).map(continent => {
-            const continentTotal = continent.countries.length;
-            const continentVisited = continent.countries.filter(country =>
-                selected.includes(country)
+            // Filter to only include countries that exist in coordinates data
+            const validCountries = continent.countries.filter(country =>
+                availableCountries.has(country)
+            );
+            const continentTotal = validCountries.length;
+            const continentVisited = validCountries.filter(country =>
+                validSelected.includes(country)
             ).length;
-            const continentPercentage = ((continentVisited / continentTotal) * 100).toFixed(1);
+            const continentPercentage = continentTotal > 0
+                ? ((continentVisited / continentTotal) * 100).toFixed(1)
+                : "0.0";
 
             return {
                 name: continent.name,

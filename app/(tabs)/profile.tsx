@@ -2,6 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useDebounce } from '@/hooks/useDebounce';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import ColorPicker from 'react-native-wheel-color-picker';
@@ -11,9 +12,9 @@ export default function ProfileScreen() {
   const { visitedFillColor, setVisitedFillColor } = useCountries();
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
 
-  const handleColorChange = (color: string) => {
+  const handleColorChange = useDebounce((color: string) => {
     setVisitedFillColor(color);
-  };
+  }, 100); // Debounce color updates to improve performance
 
   return (
     <ThemedView style={styles.container}>
