@@ -108,7 +108,7 @@ export default function StatsScreen() {
                             <SimpleWorldMap
                                 visitedCountries={stats.visitedCountries}
                                 visitedColor={visitedFillColor}
-                                height={200}
+                                height={250}
                             />
                         </View>
 
