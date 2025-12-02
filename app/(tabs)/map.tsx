@@ -6,7 +6,7 @@ import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Platform, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
-import MapView, { Polygon, PROVIDER_DEFAULT, UrlTile } from 'react-native-maps';
+import MapView, { Polygon, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
 import { countryCoordinates } from '../../constants/CountryCoordinates';
 import { Coordinate, CountryPolygons } from '../../types/map';
 
@@ -48,7 +48,7 @@ export default function MapScreen() {
             </BlurView>
             <MapView
                 style={[styles.map, { width, height }]}
-                provider={Platform.OS === 'ios' ? PROVIDER_DEFAULT : undefined}
+                provider={Platform.OS === 'ios' ? PROVIDER_DEFAULT : PROVIDER_GOOGLE}
                 mapType="standard"
                 rotateEnabled={true}
                 pitchEnabled={true}
@@ -62,22 +62,6 @@ export default function MapScreen() {
                 }}
                 minZoomLevel={1}
             >
-                {/* Render OpenStreetMap tiles on Android, use dark tiles in dark mode */}
-                {Platform.OS === 'android' && (
-                    colorScheme === 'dark' ? (
-                        <UrlTile
-                            urlTemplate="https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                            maximumZ={19}
-                            flipY={false}
-                        />
-                    ) : (
-                        <UrlTile
-                            urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            maximumZ={19}
-                            flipY={false}
-                        />
-                    )
-                )}
                 {Object.entries(countryCoordinates).map(([countryName, polygons]: [string, CountryPolygons]) => {
                     const isVisited = selected.includes(countryName);
                     return polygons.map((coordinates: Coordinate[], index: number) => (
