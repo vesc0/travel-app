@@ -26,8 +26,10 @@ const CountryItem = memo(({ name, isSelected, onToggle, textColor }: CountryItem
                     {name}
                 </ThemedText>
             </View>
-            {isSelected && (
+            {isSelected ? (
                 <MaterialIcons name="check" size={24} color="#00bfa5" />
+            ) : (
+                <MaterialIcons name="add" size={24} color="#999" />
             )}
         </TouchableOpacity>
     );
