@@ -7,7 +7,6 @@ import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
 import Svg, { Circle } from 'react-native-svg';
 
 const availableCountries = new Set(Object.keys(countryCoordinates));
@@ -56,34 +55,6 @@ export default function StatsScreen() {
             continentStats
         };
     }, [selected]);
-
-    const chartConfig = useMemo(() => ({
-        backgroundGradientFrom: colorScheme === 'dark' ? '#121212' : '#ffffff',
-        backgroundGradientTo: colorScheme === 'dark' ? '#121212' : '#ffffff',
-        color: (opacity = 1) =>
-            colorScheme === 'dark'
-                ? `rgba(255, 255, 255, ${opacity})`
-                : `rgba(0, 0, 0, ${opacity})`,
-        labelColor: (opacity = 1) =>
-            colorScheme === 'dark'
-                ? `rgba(255, 255, 255, ${opacity})`
-                : `rgba(0, 0, 0, ${opacity})`,
-        strokeWidth: 2,
-        barPercentage: 0.5,
-    }), [colorScheme]);
-
-    const pieData = useMemo(() =>
-        stats.continentStats
-            .filter(stat => stat.visited > 0)
-            .map(stat => ({
-                name: stat.name,
-                population: stat.visited,
-                color: stat.color,
-                legendFontColor: colorScheme === 'dark' ? '#fff' : '#000',
-                legendFontSize: 12
-            })),
-        [stats, colorScheme]
-    );
 
     return (
         <ThemedView style={styles.container}>
@@ -172,20 +143,64 @@ export default function StatsScreen() {
                         </View>
 
                         {/* Continents Breakdown */}
-                        {pieData.length > 0 ? (
+                        {stats.continentStats.length > 0 ? (
                             <View style={styles.card}>
                                 <ThemedText style={styles.cardTitle}>Continental Breakdown</ThemedText>
-                                <PieChart
-                                    data={pieData}
-                                    width={width - 48}
-                                    height={180}
-                                    chartConfig={chartConfig}
-                                    accessor="population"
-                                    backgroundColor="transparent"
-                                    paddingLeft="0"
-                                    center={[0, 0]}
-                                    absolute
-                                />
+                                {stats.continentStats.map((continent) => (
+                                    <View key={continent.name} style={styles.continentDonutContainer}>
+                                        <View style={styles.continentDonutSide}>
+                                            <View style={{ flexDirection: "row" }}>
+                                                <ThemedText style={[styles.donutValue, { color: continent.color }]}>
+                                                    {continent.visited}
+                                                </ThemedText>
+                                                <ThemedText style={[styles.donutValue, { color: "#888" }]}>
+                                                    /{continent.total}
+                                                </ThemedText>
+                                            </View>
+                                            <ThemedText style={styles.donutLabel}>
+                                                {continent.name}
+                                            </ThemedText>
+                                        </View>
+
+                                        <View style={styles.donutCenter}>
+                                            <Svg width={80} height={80} viewBox="0 0 100 100">
+                                                {/* Background circle */}
+                                                <Circle
+                                                    cx="50"
+                                                    cy="50"
+                                                    r="40"
+                                                    fill="none"
+                                                    stroke={colorScheme === 'dark' ? '#333333' : '#e0e0e0'}
+                                                    strokeWidth="10"
+                                                />
+                                                {/* Visited circle - drawn as arc using circumference */}
+                                                {continent.total > 0 && (
+                                                    <Circle
+                                                        cx="50"
+                                                        cy="50"
+                                                        r="40"
+                                                        fill="none"
+                                                        stroke={continent.color}
+                                                        strokeWidth="10"
+                                                        strokeDasharray={`${(continent.visited / continent.total) * 251.2} 251.2`}
+                                                        strokeDashoffset="0"
+                                                        strokeLinecap="round"
+                                                        transform="rotate(-90 50 50)"
+                                                    />
+                                                )}
+                                            </Svg>
+                                        </View>
+
+                                        <View style={styles.continentDonutSide}>
+                                            <ThemedText style={[styles.donutValue, { color: continent.color }]}>
+                                                {Math.round(parseFloat(continent.percentage))}%
+                                            </ThemedText>
+                                            <ThemedText style={styles.donutLabel}>
+                                                Coverage
+                                            </ThemedText>
+                                        </View>
+                                    </View>
+                                ))}
                             </View>
                         ) : null}
                     </>
@@ -270,6 +285,21 @@ const styles = StyleSheet.create({
     donutSubtext: {
         fontSize: 11,
         opacity: 0.6,
+    },
+    continentDonutContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        paddingVertical: 12,
+        paddingHorizontal: 8,
+        marginBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+    },
+    continentDonutSide: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
     },
     continentStat: {
         marginBottom: 12,
