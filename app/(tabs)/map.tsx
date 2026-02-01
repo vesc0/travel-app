@@ -24,7 +24,7 @@ export default function MapScreen() {
     // Create semi-transparent version for fill
     const visitedFillColorWithAlpha = visitedFillColor + '4D'; // 30% opacity in hex
     const visitedStrokeColor = visitedFillColor;
-    const unvisitedFillColor = colorScheme === 'dark' ? 'rgba(55, 71, 79, 0.3)' : 'rgba(207, 216, 220, 0.3)';
+    const unvisitedFillColor = 'rgba(0, 0, 0, 0.68)';
     const unvisitedStrokeColor = colorScheme === 'dark' ? '#455a64' : '#90a4ae';
     const textColor = colorScheme === 'dark' ? '#fff' : '#000';
     const buttonBackground = colorScheme === 'dark'
@@ -64,13 +64,14 @@ export default function MapScreen() {
             >
                 {Object.entries(countryCoordinates).map(([countryName, polygons]: [string, CountryPolygons]) => {
                     const isVisited = selected.includes(countryName);
+                    if (!isVisited) return null;
                     return polygons.map((coordinates: Coordinate[], index: number) => (
                         <Polygon
                             key={`${countryName}-${index}`}
                             coordinates={coordinates}
-                            fillColor={isVisited ? visitedFillColorWithAlpha : unvisitedFillColor}
-                            strokeColor={isVisited ? visitedStrokeColor : unvisitedStrokeColor}
-                            strokeWidth={isVisited ? 2 : 1}
+                            fillColor={visitedFillColorWithAlpha}
+                            strokeColor={visitedStrokeColor}
+                            strokeWidth={2}
                         />
                     ));
                 })}
