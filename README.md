@@ -200,13 +200,13 @@ The app uses TopoJSON format for geographical data:
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/map.png" alt="map" width="300">
+  <img src="screenshots/map.PNG" alt="map" width="300">
 </p>
 
 <p align="center">
-  <img src="screenshots/select.png" alt="select" width="300">
+  <img src="screenshots/select.PNG" alt="select" width="300">
 </p>
 
 <p align="center">
-  <img src="screenshots/stats.png" alt="stats" width="300">
+  <img src="screenshots/stats.PNG" alt="stats" width="300">
 </p>
