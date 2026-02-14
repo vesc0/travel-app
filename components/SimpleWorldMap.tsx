@@ -2,7 +2,7 @@ import { countryCoordinates } from '@/constants/CountryCoordinates';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { memo, useMemo } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import Svg, { Polygon, Rect } from 'react-native-svg';
+import Svg, { ClipPath, Defs, G, Polygon, Rect } from 'react-native-svg';
 
 interface SimpleWorldMapProps {
     visitedCountries: string[];
@@ -41,49 +41,31 @@ const SimpleWorldMapComponent = ({
             const isVisited = visitedCountries.includes(countryName);
 
             polyList.forEach((coordinates) => {
-                // Handle date line wrapping by splitting polygons
-                let currentSegment: Array<[number, number]> = [];
-                const segments: Array<Array<[number, number]>> = [];
+                if (coordinates.length < 3) return;
 
-                coordinates.forEach((coord, idx) => {
-                    const x = (coord.longitude + 180) * scaleX;
-                    const y = (90 - coord.latitude) * scaleY;
-
-                    // Check if this coordinate is far from the previous one (date line crossing)
-                    if (idx > 0 && currentSegment.length > 0) {
-                        const prevCoord = coordinates[idx - 1];
-                        const prevX = (prevCoord.longitude + 180) * scaleX;
-                        // If distance is too large, it has crossed the date line
-                        if (Math.abs(x - prevX) > mapWidth / 2) {
-                            // Save current segment and start a new one
-                            if (currentSegment.length >= 2) {
-                                segments.push([...currentSegment]);
-                            }
-                            currentSegment = [];
-                        }
-                    }
-
-                    currentSegment.push([x, y]);
-                });
-
-                // Add final segment
-                if (currentSegment.length >= 2) {
-                    segments.push(currentSegment);
+                // Normalize longitudes to keep polygons continuous across the date line.
+                // Instead of splitting, adjust longitudes so there are no >180° jumps,
+                // then let SVG clipping handle any overflow beyond the map bounds.
+                const normalizedLons: number[] = [coordinates[0].longitude];
+                for (let i = 1; i < coordinates.length; i++) {
+                    let lon = coordinates[i].longitude;
+                    const prevLon = normalizedLons[i - 1];
+                    while (lon - prevLon > 180) lon -= 360;
+                    while (lon - prevLon < -180) lon += 360;
+                    normalizedLons.push(lon);
                 }
 
-                // Convert segments to points strings
-                segments.forEach((segment) => {
-                    const points = segment
-                        .map(([x, y]) => `${x},${y}`)
-                        .join(' ');
+                const points = coordinates
+                    .map((coord, i) => {
+                        const x = (normalizedLons[i] + 180) * scaleX;
+                        const y = (90 - coord.latitude) * scaleY;
+                        return `${x},${y}`;
+                    })
+                    .join(' ');
 
-                    if (points.trim()) {
-                        countryPolygons.push({
-                            points,
-                            isVisited
-                        });
-                    }
-                });
+                if (points.trim()) {
+                    countryPolygons.push({ points, isVisited });
+                }
             });
 
             if (countryPolygons.length > 0) {
@@ -112,6 +94,11 @@ const SimpleWorldMapComponent = ({
                 height={mapHeight}
                 viewBox={`0 0 ${mapWidth} ${mapHeight}`}
             >
+                <Defs>
+                    <ClipPath id="mapClip">
+                        <Rect x="0" y="0" width={mapWidth} height={mapHeight} />
+                    </ClipPath>
+                </Defs>
                 <Rect
                     x="0"
                     y="0"
@@ -120,23 +107,25 @@ const SimpleWorldMapComponent = ({
                     fill={backgroundColor}
                 />
 
-                {polygons.map((country) =>
-                    country.polygons.map((polygon, idx) => (
-                        <Polygon
-                            key={`${country.countryName}-${idx}`}
-                            points={polygon.points}
-                            fill={polygon.isVisited ? visitedColorWithAlpha : unvisitedColor}
-                            stroke={
-                                polygon.isVisited
-                                    ? visitedColor
-                                    : colorScheme === 'dark'
-                                        ? '#444444'
-                                        : '#d0d0d0'
-                            }
-                            strokeWidth="0.5"
-                        />
-                    ))
-                )}
+                <G clipPath="url(#mapClip)">
+                    {polygons.map((country) =>
+                        country.polygons.map((polygon, idx) => (
+                            <Polygon
+                                key={`${country.countryName}-${idx}`}
+                                points={polygon.points}
+                                fill={polygon.isVisited ? visitedColorWithAlpha : unvisitedColor}
+                                stroke={
+                                    polygon.isVisited
+                                        ? visitedColor
+                                        : colorScheme === 'dark'
+                                            ? '#444444'
+                                            : '#d0d0d0'
+                                }
+                                strokeWidth="0.5"
+                            />
+                        ))
+                    )}
+                </G>
             </Svg>
         </View>
     );
