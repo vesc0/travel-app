@@ -1,34 +1,41 @@
+import worldData from '@/assets/world-50m.json';
 import { SimpleWorldMap } from '@/components/SimpleWorldMap';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { continents } from '@/constants/Continents';
-import { countryCoordinates } from '@/constants/CountryCoordinates';
 import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
+import { feature } from 'topojson-client';
 
-const availableCountries = new Set(Object.keys(countryCoordinates));
+const geojson = feature(
+    worldData as any,
+    worldData.objects.countries
+) as GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon, { name: string }>;
+const allCountryNames = new Set(geojson.features.map(f => f.properties.name));
 
 export default function StatsScreen() {
     const colorScheme = useColorScheme();
     const { selected, visitedFillColor } = useCountries();
     const { width } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
 
     const stats = useMemo(() => {
-        // Filter selected countries to only include those with coordinates
-        const validSelected = selected.filter(country => availableCountries.has(country));
+        // Filter selected countries to only include those in the world data
+        const validSelected = selected.filter(country => allCountryNames.has(country));
         const validSelectedSet = new Set(validSelected);
 
-        const totalCountries = availableCountries.size;
+        const totalCountries = allCountryNames.size;
         const visitedCount = validSelected.length;
         const percentage = ((visitedCount / totalCountries) * 100).toFixed(1);
 
         const continentStats = Object.values(continents).map(continent => {
-            // Filter to only include countries that exist in coordinates data
+            // Filter to only include countries that exist in world data
             const validCountries = continent.countries.filter(country =>
-                availableCountries.has(country)
+                allCountryNames.has(country)
             );
             const continentTotal = validCountries.length;
             const continentVisited = validCountries.filter(country =>
@@ -57,7 +64,7 @@ export default function StatsScreen() {
     }, [selected]);
 
     return (
-        <ThemedView style={styles.container}>
+        <ThemedView style={[styles.container, { paddingTop: insets.top + 8 }]}>
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
@@ -213,7 +220,6 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 60,
     },
     scrollView: {
         flex: 1,

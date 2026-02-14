@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import { CountryProvider } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -24,9 +25,9 @@ export default function RootLayout() {
               headerShown: true,
               headerTitle: 'Select Countries',
               headerStyle: {
-                backgroundColor: colorScheme === 'dark' ? '#121212' : '#fff'
+                backgroundColor: colorScheme === 'dark' ? Colors.shared.headerDarkBg : Colors.light.background
               },
-              headerTintColor: colorScheme === 'dark' ? '#fff' : '#000'
+              headerTintColor: Colors[colorScheme ?? 'light'].text
             }}
           />
         </Stack>

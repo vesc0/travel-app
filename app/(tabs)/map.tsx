@@ -1,38 +1,28 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
+import { countryCoordinates } from '@/constants/CountryCoordinates';
 import { useCountries } from '@/contexts/CountryContext';
+import { Coordinate, CountryPolygons } from '@/types/map';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import React from 'react';
-import { Dimensions, Platform, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, useColorScheme, useWindowDimensions } from 'react-native';
 import MapView, { Polygon, PROVIDER_DEFAULT, PROVIDER_GOOGLE } from 'react-native-maps';
-import { countryCoordinates } from '../../constants/CountryCoordinates';
-import { Coordinate, CountryPolygons } from '../../types/map';
 
 export default function MapScreen() {
-    const { selected, visitedFillColor } = useCountries();
+    const { selected, visitedFillColor, visitedFillColorWithAlpha } = useCountries();
     const colorScheme = useColorScheme();
-    const { width, height } = Dimensions.get('window');
+    const theme = Colors[colorScheme ?? 'light'];
+    const { width, height } = useWindowDimensions();
 
     const handleAddCountries = () => {
         router.push('/modal');
     };
 
-    // Colors based on color scheme
-    const containerBackgroundColor = colorScheme === 'dark' ? '#121212' : '#fff';
-    // Create semi-transparent version for fill
-    const visitedFillColorWithAlpha = visitedFillColor + '4D'; // 30% opacity in hex
-    const visitedStrokeColor = visitedFillColor;
-    const unvisitedFillColor = 'rgba(0, 0, 0, 0.68)';
-    const unvisitedStrokeColor = colorScheme === 'dark' ? '#455a64' : '#90a4ae';
-    const textColor = colorScheme === 'dark' ? '#fff' : '#000';
-    const buttonBackground = colorScheme === 'dark'
-        ? 'rgba(255, 255, 255, 0.1)' // Light blur for dark mode
-        : 'rgba(255, 255, 255, 0.6)'; // White blur for light mode
-
     return (
-        <ThemedView style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
+        <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
             <BlurView
                 intensity={50}
                 tint={colorScheme === 'dark' ? 'dark' : 'light'}
@@ -70,7 +60,7 @@ export default function MapScreen() {
                             key={`${countryName}-${index}`}
                             coordinates={coordinates}
                             fillColor={visitedFillColorWithAlpha}
-                            strokeColor={visitedStrokeColor}
+                            strokeColor={visitedFillColor}
                             strokeWidth={2}
                         />
                     ));

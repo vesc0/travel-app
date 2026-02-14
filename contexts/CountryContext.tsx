@@ -4,9 +4,11 @@ import React, { createContext, ReactNode, useContext, useEffect, useMemo, useSta
 type CountryContextType = {
     selected: string[];
     toggleCountry: (name: string) => void;
+    setSelectedCountries: (countries: string[]) => void;
     visitedFillColor: string;
     setVisitedFillColor: (color: string) => void;
     visitedFillColorWithAlpha: string;
+    isLoaded: boolean;
 };
 
 const CountryContext = createContext<CountryContextType | undefined>(undefined);
@@ -73,13 +75,19 @@ export function CountryProvider({ children }: { children: ReactNode }) {
         );
     };
 
+    const setSelectedCountries = (countries: string[]) => {
+        setSelected(countries);
+    };
+
     return (
         <CountryContext.Provider value={{
             selected,
             toggleCountry,
+            setSelectedCountries,
             visitedFillColor,
             setVisitedFillColor,
-            visitedFillColorWithAlpha
+            visitedFillColorWithAlpha,
+            isLoaded
         }}>
             {children}
         </CountryContext.Provider>

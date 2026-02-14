@@ -10,14 +10,14 @@ export const continents: Record<string, Continent> = {
         name: "Europe",
         color: "#FF6384",
         countries: [
-            "Albania", "Andorra", "Austria", "Belarus", "Belgium", "Bosnia and Herz.",
-            "Bulgaria", "Croatia", "Czechia", "Denmark", "Estonia", "Faeroe Is.", "Finland",
-            "France", "Germany", "Greece", "Guernsey", "Hungary", "Iceland", "Ireland",
-            "Isle of Man", "Italy", "Jersey", "Kosovo", "Latvia", "Liechtenstein",
+            "Albania", "Andorra", "Armenia", "Austria", "Azerbaijan", "Belarus", "Belgium", "Bosnia and Herz.",
+            "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Faeroe Is.", "Finland",
+            "France", "Georgia", "Germany", "Greece", "Guernsey", "Hungary", "Iceland", "Ireland",
+            "Isle of Man", "Italy", "Jersey", "Kazakhstan", "Kosovo", "Latvia", "Liechtenstein",
             "Lithuania", "Luxembourg", "Macedonia", "Malta", "Moldova", "Monaco",
             "Montenegro", "Netherlands", "Norway", "Poland", "Portugal", "Romania",
             "Russia", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden",
-            "Switzerland", "Ukraine", "United Kingdom", "Vatican", "Åland"
+            "Switzerland", "Turkey", "Ukraine", "United Kingdom", "Vatican", "Åland"
         ]
     },
     "Asia": {
@@ -25,14 +25,14 @@ export const continents: Record<string, Continent> = {
         color: "#36A2EB",
         countries: [
             "Afghanistan", "Armenia", "Azerbaijan", "Bahrain", "Bangladesh", "Bhutan",
-            "Brunei", "Cambodia", "China", "Cyprus", "Georgia", "Hong Kong", "India",
-            "Indonesia", "Iran", "Iraq", "Israel", "Japan", "Jordan", "Kazakhstan",
-            "Kuwait", "Kyrgyzstan", "Laos", "Lebanon", "Macao", "Malaysia", "Maldives",
-            "Mongolia", "Myanmar", "N. Cyprus", "Nepal", "North Korea", "Oman", "Pakistan",
-            "Palestine", "Philippines", "Qatar", "Russia", "Saudi Arabia", "Siachen Glacier",
-            "Singapore", "South Korea", "Sri Lanka", "Syria", "Taiwan", "Tajikistan",
-            "Thailand", "Timor-Leste", "Turkey", "Turkmenistan", "United Arab Emirates",
-            "Uzbekistan", "Vietnam", "Yemen", "Br. Indian Ocean Ter.", "Indian Ocean Ter."
+            "Br. Indian Ocean Ter.", "Brunei", "Cambodia", "China", "Cyprus", "Egypt", "Georgia",
+            "Hong Kong", "India", "Indian Ocean Ter.", "Indonesia", "Iran", "Iraq", "Israel",
+            "Japan", "Jordan", "Kazakhstan", "Kuwait", "Kyrgyzstan", "Laos", "Lebanon",
+            "Macao", "Malaysia", "Maldives", "Mongolia", "Myanmar", "N. Cyprus", "Nepal",
+            "North Korea", "Oman", "Pakistan", "Palestine", "Philippines", "Qatar", "Russia",
+            "Saudi Arabia", "Siachen Glacier", "Singapore", "South Korea", "Sri Lanka", "Syria",
+            "Taiwan", "Tajikistan", "Thailand", "Timor-Leste", "Turkey", "Turkmenistan",
+            "United Arab Emirates", "Uzbekistan", "Vietnam", "Yemen"
         ]
     },
     "Africa": {
@@ -40,31 +40,28 @@ export const continents: Record<string, Continent> = {
         color: "#FFCE56",
         countries: [
             "Algeria", "Angola", "Benin", "Botswana", "Burkina Faso", "Burundi",
-            "Cameroon", "Cabo Verde", "Central African Rep.", "Chad", "Comoros",
-            "Congo", "Dem. Rep. Congo", "Djibouti", "Egypt", "Eq. Guinea", "Eritrea",
-            "eSwatini", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea", "Guinea-Bissau",
-            "Côte d'Ivoire", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar",
+            "Cabo Verde", "Cameroon", "Central African Rep.", "Chad", "Comoros",
+            "Congo", "Côte d'Ivoire", "Dem. Rep. Congo", "Djibouti", "Egypt", "Eq. Guinea",
+            "Eritrea", "eSwatini", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea",
+            "Guinea-Bissau", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar",
             "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", "Mozambique",
-            "Namibia", "Niger", "Nigeria", "Rwanda", "São Tomé and Principe", "Senegal",
-            "Seychelles", "Sierra Leone", "Somalia", "Somaliland", "South Africa",
-            "S. Sudan", "Sudan", "Tanzania", "Togo", "Tunisia", "Uganda", "W. Sahara",
-            "Zambia", "Zimbabwe", "Saint Helena"
+            "Namibia", "Niger", "Nigeria", "Rwanda", "S. Sudan", "Saint Helena",
+            "Senegal", "Seychelles", "Sierra Leone", "Somalia", "Somaliland", "South Africa",
+            "Sudan", "Tanzania", "Togo", "Tunisia", "Uganda", "W. Sahara",
+            "Zambia", "Zimbabwe", "São Tomé and Principe"
         ]
     },
     "North America": {
         name: "North America",
         color: "#4BC0C0",
         countries: [
-            "Antigua and Barb.", "Bahamas", "Barbados", "Belize", "Canada",
-            "Costa Rica", "Cuba", "Dominica", "Dominican Rep.", "El Salvador",
-            "Grenada", "Guatemala", "Haiti", "Honduras", "Jamaica", "Mexico",
-            "Nicaragua", "Panama", "St. Kitts and Nevis", "Saint Lucia",
-            "St. Vin. and Gren.", "Trinidad and Tobago", "United States of America",
-            "Puerto Rico", "U.S. Virgin Is.", "Sint Maarten", "St-Martin",
-            "Greenland", "Bermuda", "Cayman Is.", "Montserrat", "Turks and Caicos Is.",
-            "Anguilla", "Aruba", "British Virgin Is.",
-            "Curaçao", "St-Barthélemy",
-            "St. Pierre and Miquelon"
+            "Anguilla", "Antigua and Barb.", "Aruba", "Bahamas", "Barbados", "Belize",
+            "Bermuda", "British Virgin Is.", "Canada", "Cayman Is.", "Costa Rica", "Cuba",
+            "Curaçao", "Dominica", "Dominican Rep.", "El Salvador", "Greenland", "Grenada",
+            "Guatemala", "Haiti", "Honduras", "Jamaica", "Mexico", "Montserrat", "Nicaragua",
+            "Panama", "Puerto Rico", "Saint Lucia", "Sint Maarten", "St-Barthélemy",
+            "St. Kitts and Nevis", "St. Pierre and Miquelon", "St-Martin", "St. Vin. and Gren.",
+            "Trinidad and Tobago", "Turks and Caicos Is.", "U.S. Virgin Is.", "United States of America"
         ]
     },
     "South America": {

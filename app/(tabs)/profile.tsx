@@ -5,19 +5,21 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useDebounce } from '@/hooks/useDebounce';
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ColorPicker from 'react-native-wheel-color-picker';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const { visitedFillColor, setVisitedFillColor } = useCountries();
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleColorChange = useDebounce((color: string) => {
     setVisitedFillColor(color);
   }, 100); // Debounce color updates to improve performance
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { paddingTop: insets.top + 8 }]}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Map Settings</ThemedText>
@@ -77,7 +79,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   scrollView: {
     flex: 1,

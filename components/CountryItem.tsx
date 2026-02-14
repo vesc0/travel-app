@@ -35,6 +35,8 @@ const CountryItem = memo(({ name, isSelected, onToggle, textColor }: CountryItem
     );
 });
 
+CountryItem.displayName = 'CountryItem';
+
 const styles = StyleSheet.create({
     countryItem: {
         flexDirection: 'row',

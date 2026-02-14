@@ -6,7 +6,7 @@ import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { feature } from 'topojson-client';
 
@@ -14,17 +14,12 @@ type CountryFeature = GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, { 
 
 export default function SelectCountriesModal() {
     const colorScheme = useColorScheme();
-    const { selected, toggleCountry } = useCountries();
+    const { selected, setSelectedCountries } = useCountries();
 
     const [countries, setCountries] = useState<CountryFeature[]>([]);
     const [search, setSearch] = useState('');
     const [selectedContinent, setSelectedContinent] = useState<string | null>(null);
-    const [tempSelected, setTempSelected] = useState<string[]>([]);
-
-    useEffect(() => {
-        // Initialize tempSelected with current selected countries
-        setTempSelected(selected);
-    }, []);
+    const [tempSelected, setTempSelected] = useState<string[]>(() => selected);
 
     useEffect(() => {
         const geojson = feature(
@@ -40,22 +35,18 @@ export default function SelectCountriesModal() {
         setCountries(sortedCountries);
     }, []);
 
-    const handleToggleCountry = (name: string) => {
+    const handleToggleCountry = useCallback((name: string) => {
         setTempSelected((prev) =>
             prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
         );
-    };
+    }, []);
 
     const handleSaveChanges = () => {
-        // Calculate differences and apply only changed items
-        const added = tempSelected.filter((c) => !selected.includes(c));
-        const removed = selected.filter((c) => !tempSelected.includes(c));
-
-        [...added, ...removed].forEach((c) => toggleCountry(c));
-        router.back()
+        setSelectedCountries(tempSelected);
+        router.back();
     };
 
-    const filteredCountries = countries.filter((c) => {
+    const filteredCountries = useMemo(() => countries.filter((c) => {
         const matchesSearch = c.properties.name.toLowerCase().includes(search.toLowerCase());
 
         if (!selectedContinent) {
@@ -65,7 +56,7 @@ export default function SelectCountriesModal() {
         const continentData = continents[selectedContinent];
         const isInContinent = continentData.countries.includes(c.properties.name);
         return matchesSearch && isInContinent;
-    });
+    }), [countries, search, selectedContinent]);
 
     const renderItem = useCallback(({ item }: { item: CountryFeature }) => (
         <CountryItem
@@ -74,7 +65,7 @@ export default function SelectCountriesModal() {
             onToggle={handleToggleCountry}
             textColor={colorScheme === 'dark' ? '#fff' : '#000'}
         />
-    ), [tempSelected, colorScheme]);
+    ), [tempSelected, colorScheme, handleToggleCountry]);
 
     const keyExtractor = useCallback((item: CountryFeature) => item.properties.name, []);
 
