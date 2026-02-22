@@ -6,10 +6,12 @@ import { continents } from '@/constants/Continents';
 import { useCountries } from '@/contexts/CountryContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { feature } from 'topojson-client';
+
+const isWeb = Platform.OS === 'web';
 
 const geojson = feature(
     worldData as any,
@@ -19,12 +21,19 @@ const allCountryNames = new Set(geojson.features.map(f => f.properties.name));
 
 export default function StatsScreen() {
     const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
     const { selected, visitedFillColor } = useCountries();
     const { width } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
+    // Responsive: on wide screens show continent cards in a 2-column grid
+    const useGrid = isWeb && width > 768;
+
+    // Map width for the SimpleWorldMap inside the card (accounting for card padding + scroll padding)
+    const contentMaxWidth = isWeb ? 800 : width;
+    const mapContainerWidth = Math.min(width - 32, contentMaxWidth) - 32; // subtract card padding
+
     const stats = useMemo(() => {
-        // Filter selected countries to only include those in the world data
         const validSelected = selected.filter(country => allCountryNames.has(country));
         const validSelectedSet = new Set(validSelected);
 
@@ -33,7 +42,6 @@ export default function StatsScreen() {
         const percentage = ((visitedCount / totalCountries) * 100).toFixed(1);
 
         const continentStats = Object.values(continents).map(continent => {
-            // Filter to only include countries that exist in world data
             const validCountries = continent.countries.filter(country =>
                 allCountryNames.has(country)
             );
@@ -63,11 +71,30 @@ export default function StatsScreen() {
         };
     }, [selected]);
 
+    const topPadding = isWeb ? 32 : insets.top + 8;
+
+    const cardStyle = (extra?: object) => [
+        styles.card,
+        isWeb && {
+            backgroundColor: isDark ? '#1e1e1e' : '#fff',
+            // @ts-ignore
+            boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.4)' : '0 2px 12px rgba(0,0,0,0.06)',
+        },
+        extra,
+    ];
+
+    // On iOS the tab bar floats (position absolute), so content needs extra bottom padding to clear it
+    const bottomPadding = Platform.OS === 'ios' ? insets.bottom + 50 : 32;
+
     return (
-        <ThemedView style={[styles.container, { paddingTop: insets.top + 8 }]}>
+        <ThemedView style={styles.container}>
             <ScrollView
                 style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingTop: topPadding, paddingBottom: bottomPadding },
+                    isWeb && { maxWidth: 800, alignSelf: 'center', width: '100%' },
+                ]}
             >
                 <ThemedText type="title" style={styles.title}>
                     Travel Statistics
@@ -82,19 +109,19 @@ export default function StatsScreen() {
                 ) : (
                     <>
                         {/* World Map */}
-                        <View style={[styles.card, styles.cardNoPadding]}>
+                        <View style={cardStyle({ padding: 0, paddingEnd: 0 })}>
                             <SimpleWorldMap
                                 visitedCountries={stats.visitedCountries}
                                 visitedColor={visitedFillColor}
-                                height={250}
+                                height={isWeb ? Math.min(350, width * 0.4) : 250}
+                                width={isWeb ? mapContainerWidth : undefined}
                             />
                         </View>
 
-                        {/* Overall Progress - Donut Chart */}
-                        <View style={styles.card}>
+                        {/* Overall Progress */}
+                        <View style={cardStyle()}>
                             <ThemedText style={styles.cardTitle}>Overall Progress</ThemedText>
                             <View style={styles.donutContainer}>
-                                {/* Left side - Visited countries */}
                                 <View style={styles.donutSide}>
                                     <View style={{ flexDirection: "row" }}>
                                         <ThemedText style={[styles.donutValue, { color: visitedFillColor }]}>
@@ -109,24 +136,15 @@ export default function StatsScreen() {
                                     </ThemedText>
                                 </View>
 
-                                {/* Center - Donut Chart */}
                                 <View style={styles.donutCenter}>
                                     <Svg width={100} height={100} viewBox="0 0 100 100">
-                                        {/* Background circle */}
                                         <Circle
-                                            cx="50"
-                                            cy="50"
-                                            r="40"
-                                            fill="none"
-                                            stroke={colorScheme === 'dark' ? '#333333' : '#e0e0e0'}
+                                            cx="50" cy="50" r="40" fill="none"
+                                            stroke={isDark ? '#333333' : '#e0e0e0'}
                                             strokeWidth="10"
                                         />
-                                        {/* Visited circle - drawn as arc using circumference */}
                                         <Circle
-                                            cx="50"
-                                            cy="50"
-                                            r="40"
-                                            fill="none"
+                                            cx="50" cy="50" r="40" fill="none"
                                             stroke={visitedFillColor}
                                             strokeWidth="10"
                                             strokeDasharray={`${(stats.visited / stats.total) * 251.2} 251.2`}
@@ -137,7 +155,6 @@ export default function StatsScreen() {
                                     </Svg>
                                 </View>
 
-                                {/* Right side - Global coverage */}
                                 <View style={styles.donutSide}>
                                     <ThemedText style={[styles.donutValue, { color: visitedFillColor }]}>
                                         {Math.round(parseFloat(stats.percentage))}%
@@ -150,66 +167,70 @@ export default function StatsScreen() {
                         </View>
 
                         {/* Continents Breakdown */}
-                        {stats.continentStats.length > 0 ? (
-                            <View style={styles.card}>
-                                <ThemedText style={styles.cardTitle}>Continental Breakdown</ThemedText>
-                                {stats.continentStats.map((continent) => (
-                                    <View key={continent.name} style={styles.continentDonutContainer}>
-                                        <View style={styles.continentDonutSide}>
-                                            <View style={{ flexDirection: "row" }}>
-                                                <ThemedText style={[styles.donutValue, { color: continent.color }]}>
-                                                    {continent.visited}
-                                                </ThemedText>
-                                                <ThemedText style={[styles.donutValue, { color: "#888" }]}>
-                                                    /{continent.total}
-                                                </ThemedText>
+                        {stats.continentStats.length > 0 && (
+                            <View>
+                                <ThemedText style={[styles.cardTitle, { marginBottom: 12, paddingHorizontal: 4 }]}>
+                                    Continental Breakdown
+                                </ThemedText>
+                                <View style={useGrid ? styles.continentGrid : undefined}>
+                                    {stats.continentStats.map((continent) => (
+                                        <View
+                                            key={continent.name}
+                                            style={[
+                                                ...cardStyle(),
+                                                useGrid && styles.continentGridItem,
+                                            ]}
+                                        >
+                                            <View style={styles.continentDonutContainer}>
+                                                <View style={styles.continentDonutSide}>
+                                                    <View style={{ flexDirection: "row" }}>
+                                                        <ThemedText style={[styles.donutValue, { color: continent.color }]}>
+                                                            {continent.visited}
+                                                        </ThemedText>
+                                                        <ThemedText style={[styles.donutValue, { color: "#888" }]}>
+                                                            /{continent.total}
+                                                        </ThemedText>
+                                                    </View>
+                                                    <ThemedText style={styles.donutLabel}>
+                                                        {continent.name}
+                                                    </ThemedText>
+                                                </View>
+
+                                                <View style={styles.donutCenter}>
+                                                    <Svg width={80} height={80} viewBox="0 0 100 100">
+                                                        <Circle
+                                                            cx="50" cy="50" r="40" fill="none"
+                                                            stroke={isDark ? '#333333' : '#e0e0e0'}
+                                                            strokeWidth="10"
+                                                        />
+                                                        {continent.total > 0 && (
+                                                            <Circle
+                                                                cx="50" cy="50" r="40" fill="none"
+                                                                stroke={continent.color}
+                                                                strokeWidth="10"
+                                                                strokeDasharray={`${(continent.visited / continent.total) * 251.2} 251.2`}
+                                                                strokeDashoffset="0"
+                                                                strokeLinecap="round"
+                                                                transform="rotate(-90 50 50)"
+                                                            />
+                                                        )}
+                                                    </Svg>
+                                                </View>
+
+                                                <View style={styles.continentDonutSide}>
+                                                    <ThemedText style={[styles.donutValue, { color: continent.color }]}>
+                                                        {Math.round(parseFloat(continent.percentage))}%
+                                                    </ThemedText>
+                                                    <ThemedText style={styles.donutLabel}>
+                                                        Coverage
+                                                    </ThemedText>
+                                                </View>
                                             </View>
-                                            <ThemedText style={styles.donutLabel}>
-                                                {continent.name}
-                                            </ThemedText>
                                         </View>
-
-                                        <View style={styles.donutCenter}>
-                                            <Svg width={80} height={80} viewBox="0 0 100 100">
-                                                {/* Background circle */}
-                                                <Circle
-                                                    cx="50"
-                                                    cy="50"
-                                                    r="40"
-                                                    fill="none"
-                                                    stroke={colorScheme === 'dark' ? '#333333' : '#e0e0e0'}
-                                                    strokeWidth="10"
-                                                />
-                                                {/* Visited circle - drawn as arc using circumference */}
-                                                {continent.total > 0 && (
-                                                    <Circle
-                                                        cx="50"
-                                                        cy="50"
-                                                        r="40"
-                                                        fill="none"
-                                                        stroke={continent.color}
-                                                        strokeWidth="10"
-                                                        strokeDasharray={`${(continent.visited / continent.total) * 251.2} 251.2`}
-                                                        strokeDashoffset="0"
-                                                        strokeLinecap="round"
-                                                        transform="rotate(-90 50 50)"
-                                                    />
-                                                )}
-                                            </Svg>
-                                        </View>
-
-                                        <View style={styles.continentDonutSide}>
-                                            <ThemedText style={[styles.donutValue, { color: continent.color }]}>
-                                                {Math.round(parseFloat(continent.percentage))}%
-                                            </ThemedText>
-                                            <ThemedText style={styles.donutLabel}>
-                                                Coverage
-                                            </ThemedText>
-                                        </View>
-                                    </View>
-                                ))}
+                                    ))}
+                                </View>
                             </View>
-                        ) : null}
+                        )}
                     </>
                 )}
             </ScrollView>
@@ -226,13 +247,12 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingHorizontal: 16,
-        paddingBottom: 32,
     },
     title: {
-        fontSize: 24,
+        fontSize: isWeb ? 28 : 24,
         fontWeight: 'bold',
         marginBottom: 20,
-        textAlign: 'center',
+        textAlign: isWeb ? 'left' : 'center',
     },
     card: {
         padding: 16,
@@ -240,10 +260,6 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         marginBottom: 16,
         backgroundColor: 'rgba(128, 128, 128, 0.1)',
-    },
-    cardNoPadding: {
-        padding: 0,
-        paddingEnd: 0,
     },
     emptyStateContainer: {
         flex: 1,
@@ -255,10 +271,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
         marginBottom: 12,
-    },
-    statText: {
-        fontSize: 16,
-        marginBottom: 8,
     },
     donutContainer: {
         flexDirection: 'row',
@@ -288,47 +300,26 @@ const styles = StyleSheet.create({
         marginBottom: 2,
         opacity: 0.8,
     },
-    donutSubtext: {
-        fontSize: 11,
-        opacity: 0.6,
+    continentGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    continentGridItem: {
+        width: '48%',
+        marginBottom: 0,
     },
     continentDonutContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-around',
-        paddingVertical: 12,
-        paddingHorizontal: 8,
-        marginBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        paddingVertical: 8,
+        paddingHorizontal: 4,
     },
     continentDonutSide: {
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-    },
-    continentStat: {
-        marginBottom: 12,
-    },
-    continentHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 4,
-    },
-    colorDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        marginRight: 8,
-    },
-    continentName: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    statDetail: {
-        fontSize: 14,
-        marginLeft: 20,
-        opacity: 0.8,
     },
     noDataText: {
         fontSize: 16,

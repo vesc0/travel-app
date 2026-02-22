@@ -8,8 +8,11 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 
+const isWeb = Platform.OS === 'web';
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const [fontsLoaded] = useFonts({ ...MaterialIcons.font, });
 
   if (!fontsLoaded) {
@@ -29,8 +32,17 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: { position: 'absolute' },
+          web: {
+            height: 56,
+            borderTopWidth: 1,
+            borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+            paddingBottom: 0,
+          },
           default: {},
         }),
+        tabBarLabelStyle: isWeb ? { fontSize: 13, fontWeight: '500' } : undefined,
+        tabBarIconStyle: isWeb ? { marginBottom: -2 } : undefined,
       }}
     >
       <Tabs.Screen

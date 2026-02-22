@@ -8,18 +8,20 @@ interface SimpleWorldMapProps {
     visitedCountries: string[];
     visitedColor: string;
     height?: number;
+    width?: number;
 }
 
 const SimpleWorldMapComponent = ({
     visitedCountries,
     visitedColor,
-    height = 200
+    height = 200,
+    width: widthProp,
 }: SimpleWorldMapProps) => {
     const colorScheme = useColorScheme();
-    const { width } = useWindowDimensions();
+    const { width: windowWidth } = useWindowDimensions();
 
-    // Calculate scaling to fit all countries in the view
-    const mapWidth = width - 32; // Account for padding
+    // Use provided width or fall back to window width with padding
+    const mapWidth = widthProp ?? (windowWidth - 32);
     const mapHeight = height;
     // Use proper aspect ratio: latitude range is -90 to 90 (180 degrees), longitude is -180 to 180 (360 degrees)
     const scaleX = mapWidth / 360; // Longitude range

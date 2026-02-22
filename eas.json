@@ -19,8 +19,11 @@
     "production": {
       "autoIncrement": true,
       "channel": "production",
+      "env": {
+        "ANDROID_HOME": "PATH_TO_YOUR_ANDROID_SDK"
+      },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       }
     }
   },
