@@ -35,7 +35,7 @@ export default function ProfileScreen() {
           isWeb && { maxWidth: 640, alignSelf: 'center', width: '100%' },
         ]}
       >
-        <ThemedText style={styles.pageTitle}>Settings</ThemedText>
+        <ThemedText type="title" style={styles.pageTitle}>Settings</ThemedText>
 
         <View style={[
           styles.section,
