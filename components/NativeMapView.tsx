@@ -1,8 +1,16 @@
 import { countryCoordinates } from '@/constants/CountryCoordinates';
 import { Coordinate, CountryPolygons } from '@/types/map';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import MapView, { Polygon } from 'react-native-maps';
+
+// On Android, react-native-maps applies initialRegion with newLatLngBounds(bounds, 0),
+// which throws "Map size can't be 0" (a fatal native crash) when Google Maps hasn't
+// measured its view yet. A camera position doesn't depend on the map size.
+// Android reads center, zoom, pitch and heading, so all of them must be set.
+const initialPosition = Platform.OS === 'android'
+    ? { initialCamera: { center: { latitude: 20, longitude: 0 }, zoom: 1, pitch: 0, heading: 0 } }
+    : { initialRegion: { latitude: 20, longitude: 0, latitudeDelta: 180, longitudeDelta: 180 } };
 
 interface NativeMapViewProps {
     selected: string[];
@@ -30,12 +38,7 @@ export default function NativeMapView({
             pitchEnabled
             zoomEnabled
             scrollEnabled
-            initialRegion={{
-                latitude: 20,
-                longitude: 0,
-                latitudeDelta: 180,
-                longitudeDelta: 180,
-            }}
+            {...initialPosition}
             minZoomLevel={1}
             onMapReady={() => setMapReady(true)}
         >
